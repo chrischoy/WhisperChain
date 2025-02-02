@@ -3,65 +3,95 @@ import json
 import multiprocessing as mp
 import time
 
-import pyaudio
 import websockets
 
+from core.audio import AudioCapture
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
-# A simple AudioCapture class using PyAudio to continuously capture microphone input.
-class AudioCapture:
-    SAMPLE_RATE = 16000
-    CHANNELS = 1
-    FORMAT = pyaudio.paInt16
-    CHUNK_SIZE = 4096  # ~256ms at 16kHz
-
-    def __init__(self, queue: mp.Queue, is_recording: mp.Event):
-        self.queue = queue
-        self.is_recording = is_recording
-        self.audio = None
-        self.stream = None
-
-    def start(self):
-        self.audio = pyaudio.PyAudio()
-        self.stream = self.audio.open(
-            format=self.FORMAT,
-            channels=self.CHANNELS,
-            rate=self.SAMPLE_RATE,
-            input=True,
-            frames_per_buffer=self.CHUNK_SIZE,
-        )
-        logger.info("AudioCapture: Started capturing audio")
-        while self.is_recording.is_set():
-            try:
-                data = self.stream.read(self.CHUNK_SIZE, exception_on_overflow=False)
-                logger.info(f"AudioCapture: Captured {len(data)} bytes")
-                self.queue.put(data)
-            except Exception as e:
-                logger.error(f"AudioCapture error: {e}")
-                break
-        self.cleanup()
-
-    def cleanup(self):
-        if self.stream:
-            self.stream.stop_stream()
-            self.stream.close()
-        if self.audio:
-            self.audio.terminate()
-        logger.info("AudioCapture: Stopped capturing audio")
-
-
+# StreamClient manages the connection to the WebSocket server and sends audio captured by AudioCapture.
 class StreamClient:
-    def __init__(self, server_url="ws://localhost:8000/stream"):
+    MIN_BUFFER_SIZE = 32000  # When accumulated audio exceeds this, send it (in bytes)
+
+    def __init__(self, server_url="ws://localhost:8000/stream", record_duration=5):
         self.server_url = server_url
+        self.record_duration = record_duration
+        self.audio_queue = mp.Queue()
+        self.is_recording = mp.Event()
+        self.audio_process = None
 
     def start_recording(self):
-        pass
+        self.is_recording.set()
+        capture = AudioCapture(self.audio_queue, self.is_recording)
+        self.audio_process = mp.Process(target=capture.start)
+        self.audio_process.start()
+        logger.info("StreamClient: Started recording process")
 
     def stop_recording(self):
-        pass
+        if self.is_recording.is_set():
+            logger.info("StreamClient: Stopping recording")
+            self.is_recording.clear()
+        if self.audio_process:
+            self.audio_process.join(timeout=2.0)
+            if self.audio_process.is_alive():
+                logger.warning("StreamClient: Terminating lingering audio process")
+                self.audio_process.terminate()
+            self.audio_process = None
+            logger.info("StreamClient: Recording stopped")
 
     async def stream_microphone(self):
-        pass
+        audio_buffer = bytearray()
+        end_sent = False
+        start_time = time.time()
+        # Open a WebSocket connection.
+        async with websockets.connect(self.server_url) as websocket:
+            logger.info("StreamClient: Connected to server")
+            self.start_recording()
+            # Loop until we receive a final message from the server
+            while True:
+                # Check if recording duration has elapsed & final data should be sent.
+                if time.time() - start_time >= self.record_duration and not end_sent:
+                    self.stop_recording()
+                    if len(audio_buffer) > 0:
+                        await websocket.send(bytes(audio_buffer))
+                        logger.info("StreamClient: Sent remaining audio, cleared buffer")
+                        audio_buffer.clear()
+                    logger.info("StreamClient: Sending END marker")
+                    await websocket.send(b"END\n")
+                    end_sent = True
+
+                if not end_sent:
+                    try:
+                        # Consume any available audio data from the queue.
+                        data = self.audio_queue.get_nowait()
+                        logger.info(f"StreamClient: Got {len(data)} bytes from queue")
+                        audio_buffer.extend(data)
+                        if len(audio_buffer) >= self.MIN_BUFFER_SIZE:
+                            await websocket.send(bytes(audio_buffer))
+                            logger.info("StreamClient: Sent audio chunk")
+                            audio_buffer.clear()
+                    except Exception:
+                        # No data available; sleep briefly to yield control.
+                        await asyncio.sleep(0.01)
+
+                # Listen for messages from the server.
+                try:
+                    # Use a short timeout to periodically check the recording status.
+                    message = await asyncio.wait_for(websocket.recv(), timeout=0.1)
+                    msg = json.loads(message)
+                    logger.info(f"StreamClient: Received message: {msg}")
+                    yield msg
+                    if msg.get("is_final"):
+                        break
+                except asyncio.TimeoutError:
+                    continue
+            await asyncio.sleep(0.1)
+            logger.info("StreamClient: Stream ended")
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        self.stop_recording()

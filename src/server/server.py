@@ -43,7 +43,11 @@ async def websocket_endpoint(websocket: WebSocket):
             }
             print("Server: Echoing message:", echo_message)
             await websocket.send_json(echo_message)
-    await websocket.close()
+    try:
+        await websocket.close()
+    except RuntimeError as e:
+        # Ignore errors if the connection is already closed/completed
+        print(f"Server: Warning while closing websocket: {e}")
 
 
 if __name__ == "__main__":
