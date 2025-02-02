@@ -22,7 +22,7 @@
 - [ ] Voice Processing Server
     - [x] FastAPI server setup
     - [x] Audio upload endpoint
-    - [ ] Streaming audio support
+    - [x] Streaming audio support
     - [ ] WebSocket for real-time transcription
 - [ ] LangChain Integration
     - [ ] Test OpenAI API Key loading

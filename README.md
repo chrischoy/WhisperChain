@@ -21,6 +21,7 @@ xcode-select --install
 
 # Install ffmpeg using Homebrew
 brew install ffmpeg
+brew install portaudio
 ```
 
 2. Install the project:
@@ -48,6 +49,15 @@ pip install -e ".[test]"
 Run tests:
 ```bash
 pytest tests/
+```
+
+Run tests with microphone input:
+```bash
+# Run specific microphone test
+TEST_WITH_MIC=1 pytest tests/test_client.py -v -k test_stream_client_with_real_mic
+
+# Run all tests including microphone test
+TEST_WITH_MIC=1 pytest tests/
 ```
 
 For MacOS CoreML tests:

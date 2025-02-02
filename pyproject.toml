@@ -20,6 +20,7 @@ dependencies = [
     "setuptools>=45",
     "fastapi>=0.100.0",
     "uvicorn>=0.22.0",
+    "pyaudio>=0.2.11",
 ]
 
 [project.optional-dependencies]
@@ -30,9 +31,6 @@ test = [
 ]
 dev = [
     "pre-commit>=3.0.0",
-]
-macos = [
-    "coremltools>=7.0",
 ]
 
 [tool.black]
