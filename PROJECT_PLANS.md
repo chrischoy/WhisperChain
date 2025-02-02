@@ -20,8 +20,8 @@
 - [x] Basic git commit hook to check if the code is formatted
     - [x] Format the code
 - [ ] Voice Processing Server
-    - [ ] FastAPI server setup
-    - [ ] Audio upload endpoint
+    - [x] FastAPI server setup
+    - [x] Audio upload endpoint
     - [ ] Streaming audio support
     - [ ] WebSocket for real-time transcription
 - [ ] LangChain Integration
