@@ -8,7 +8,6 @@ import pytest
 from core.audio import AudioCapture
 
 
-# Run if TEST_WITH_MIC is set
 @pytest.mark.skipif(not os.getenv("TEST_WITH_MIC"), reason="Requires microphone input")
 def test_audio_capture():
     q = mp.Queue()
