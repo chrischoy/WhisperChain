@@ -42,6 +42,7 @@ def test_basic_transcription(test_audio_path):
 
     # Test transcription
     result = model.transcribe(test_audio_path)
+    print(result)
     assert isinstance(result, list), "Transcription result should be a list of segments"
     assert len(result) > 0, "Transcription result should not be empty"
     assert hasattr(result[0], "text"), "Segments should have text attribute"

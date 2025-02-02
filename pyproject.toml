@@ -18,21 +18,21 @@ dependencies = [
     "openai>=1.0.0",
     "pywhispercpp>=1.3.0",
     "setuptools>=45",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.22.0",
+    "python-multipart>=0.0.6",  # For handling file uploads
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest>=7.0.0",
+    "httpx>=0.24.0",  # For testing FastAPI
 ]
 dev = [
     "pre-commit>=3.0.0",
 ]
 macos = [
     "coremltools>=7.0",
-]
-all = [
-    "pytest>=7.0.0",
-    "pre-commit>=3.0.0",
 ]
 
 [tool.black]
@@ -42,3 +42,9 @@ target-version = ['py38']
 [tool.isort]
 profile = "black"
 multi_line_output = 3
+
+[tool.setuptools]
+package-dir = {"" = "src"}  # Tells setuptools that packages are under src/
+
+[tool.setuptools.packages.find]
+where = ["src"]  # Look for packages under src/
