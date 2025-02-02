@@ -2,6 +2,7 @@ import os
 import platform
 import tempfile
 import urllib.request
+from time import perf_counter
 
 import pytest
 from fastapi.testclient import TestClient
@@ -54,12 +55,30 @@ def test_transcribe_with_audio(test_audio_path):
     assert "transcription" in result
     assert isinstance(result["transcription"], list)
 
+    # Check segment format in JSON response
+    for segment in result["transcription"]:
+        assert "text" in segment
+        assert "t0" in segment  # start time
+        assert "t1" in segment  # end time
+        assert isinstance(segment["text"], str)
+        assert isinstance(segment["t0"], (int, float))
+        assert isinstance(segment["t1"], (int, float))
+
 
 @pytest.mark.skipif(
     platform.system() != "Darwin" or not os.environ.get("WHISPER_COREML"),
     reason="CoreML tests only run on MacOS with WHISPER_COREML=1",
 )
-def test_coreml_support():
+def test_coreml_support(test_audio_path):
     """Test CoreML support on MacOS"""
-    response = client.get("/health")  # Just checking if server starts with CoreML
+    start_time = perf_counter()
+
+    with open(test_audio_path, "rb") as f:
+        response = client.post("/transcribe", files={"file": ("test_audio.ogg", f, "audio/ogg")})
+
+    elapsed = perf_counter() - start_time
+
     assert response.status_code == 200
+    # CoreML should process faster than CPU
+    # You might want to adjust this threshold based on your hardware
+    assert elapsed < 2.0, f"CoreML transcription took {elapsed:.2f} seconds"

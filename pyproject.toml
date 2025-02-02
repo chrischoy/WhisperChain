@@ -20,13 +20,13 @@ dependencies = [
     "setuptools>=45",
     "fastapi>=0.100.0",
     "uvicorn>=0.22.0",
-    "python-multipart>=0.0.6",  # For handling file uploads
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest>=7.0.0",
-    "httpx>=0.24.0",  # For testing FastAPI
+    "pytest-asyncio>=0.21.0",  # Change from trio to asyncio
+    "httpx>=0.24.0",          # For testing FastAPI
 ]
 dev = [
     "pre-commit>=3.0.0",
@@ -48,3 +48,7 @@ package-dir = {"" = "src"}  # Tells setuptools that packages are under src/
 
 [tool.setuptools.packages.find]
 where = ["src"]  # Look for packages under src/
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

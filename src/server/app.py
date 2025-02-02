@@ -2,7 +2,7 @@ import os
 import tempfile
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 from .server import WhisperServer
@@ -36,7 +36,7 @@ whisper_server = WhisperServer()
 
 
 @app.post("/transcribe")
-async def transcribe_audio(file: UploadFile = File(...)):
+async def transcribe_file(file: UploadFile = File(...)):
     """
     Endpoint to transcribe audio files
     Accepts audio file uploads and returns transcription
@@ -53,7 +53,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
             temp_file.flush()
 
             # Transcribe the audio
-            result = await whisper_server.transcribe_audio(temp_file.name)
+            result = await whisper_server.transcribe_file(temp_file.name)
 
             return {"filename": file.filename, "transcription": result}
         except Exception as e:
@@ -67,3 +67,13 @@ async def transcribe_audio(file: UploadFile = File(...)):
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+
+@app.websocket("/stream")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time audio streaming
+    Accepts audio chunks and returns transcriptions
+    """
+    async for transcription in whisper_server.transcribe_websocket(websocket):
+        await websocket.send_json(transcription)  # Send each yielded message
