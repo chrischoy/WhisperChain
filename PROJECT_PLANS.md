@@ -34,6 +34,8 @@
     - [x] Capture a hot key regardless of the current application
     - [x] Put the final result in the system clipboard
     - [ ] Show an icon when voice control is active
+- [ ] Command line interface
+    - [ ] Add a command line interface using `click`
 - [ ] Context Management
     - [ ] System prompt configuration
     - [ ] Chat history persistence

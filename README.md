@@ -32,22 +32,25 @@ pip install -e .
 
 ## Usage
 
-1. Start the voice processing server:
+1. Start the application:
 ```bash
-./scripts/run_server.sh
-# Or: uvicorn src.server.server:app --reload --host 0.0.0.0 --port 8000
+# Run with default settings
+whisper-voice
+
+# Run with custom configuration
+whisper-voice --config config.json
+
+# Override specific settings
+whisper-voice --port 8080 --hotkey "<ctrl>+<alt>+t"
 ```
 
-2. Run the key listener:
-```bash
-python src/client/key_listener.py
-```
-
-3. Use the global hotkey (<ctrl>+<alt>+r by default):
+2. Use the global hotkey (<ctrl>+<alt>+r by default):
    - Press and hold to start recording
    - Speak your text
    - Release to stop recording
    - The cleaned transcription will be copied to your clipboard automatically
+
+The application will start both the server and client processes. Press Ctrl+C to stop both processes.
 
 ## Development
 

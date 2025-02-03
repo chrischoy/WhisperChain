@@ -13,6 +13,8 @@ authors = [
     { name="Chris Choy", email="chrischoy@ai.stanford.edu" }
 ]
 dependencies = [
+    "click>=8.0.0",
+    "pydantic>=2.0.0",
     "pynput>=1.7.7",
     "pyperclip",
     "torch>=2.0.0",
@@ -36,6 +38,9 @@ dev = [
     "pre-commit>=3.0.0",
 ]
 
+[project.scripts]
+whisper-voice = "src.cli.run:main"
+
 [tool.black]
 line-length = 99
 target-version = ['py38']
@@ -45,10 +50,11 @@ profile = "black"
 multi_line_output = 3
 
 [tool.setuptools]
-package-dir = {"" = "src"}  # Tells setuptools that packages are under src/
+package-dir = {"" = "."}  # Tells setuptools that packages are under .
 
 [tool.setuptools.packages.find]
-where = ["src"]  # Look for packages under src/
+where = ["."]
+exclude = ["tests"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -6,6 +6,7 @@ import pyperclip
 from pynput import keyboard
 
 from src.client.stream_client import StreamClient
+from src.core.config import ClientConfig
 from src.utils.decorators import handle_exceptions
 from src.utils.logger import get_logger
 
@@ -46,8 +47,9 @@ class HotKeyListener:
 
 
 class HotKeyRecordingListener(HotKeyListener):
-    def __init__(self, combination_str="<ctrl>+<alt>+r"):
-        super().__init__(combination_str)
+    def __init__(self, hotkey: str = "<ctrl>+<alt>+r", config: ClientConfig = None):
+        super().__init__(hotkey)
+        self.config = config or ClientConfig(hotkey=hotkey)
         self.recording = False
         self.stop_event = mp.Event()
         self.stop_event.clear()
@@ -58,11 +60,10 @@ class HotKeyRecordingListener(HotKeyListener):
         messages = []
         total_bytes_sent = 0
 
-        async with StreamClient() as client:
+        async with StreamClient(config=self.config) as client:
             async for message in client.stream_microphone():
                 if self.stop_event.is_set():
                     logger.info("Stopping audio capture")
-                    # this will trigger the stop logic in stream_microphone() by setting END marker
                     client.stop()
 
                 messages.append(message)

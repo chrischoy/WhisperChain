@@ -5,7 +5,8 @@ import time
 
 import websockets
 
-from core.audio import AudioCapture
+from src.core.audio import AudioCapture
+from src.core.config import ClientConfig
 from src.utils.decorators import handle_exceptions
 from src.utils.logger import get_logger
 
@@ -14,10 +15,10 @@ logger = get_logger(__name__)
 
 # StreamClient manages the connection to the WebSocket server and sends audio captured by AudioCapture.
 class StreamClient:
-    MIN_BUFFER_SIZE = 32000  # When accumulated audio exceeds this, send it (in bytes)
-
-    def __init__(self, server_url="ws://localhost:8000/stream"):
-        self.server_url = server_url
+    def __init__(self, config: ClientConfig = None):
+        self.config = config or ClientConfig()
+        self.server_url = self.config.server_url
+        self.min_buffer_size = self.config.stream.min_buffer_size
         self.audio_queue = mp.Queue()
         self.is_audio_capturing = mp.Event()
         self.stop_event = mp.Event()
@@ -26,7 +27,7 @@ class StreamClient:
     def _start_audio_capture(self):
         self.stop_event.clear()
         self.is_audio_capturing.set()
-        capture = AudioCapture(self.audio_queue, self.is_audio_capturing)
+        capture = AudioCapture(self.audio_queue, self.is_audio_capturing, config=self.config.audio)
         self.audio_process = mp.Process(target=capture.start)
         self.audio_process.start()
         logger.info("StreamClient: Started recording process")
@@ -63,7 +64,7 @@ class StreamClient:
                         logger.info("StreamClient: Sent remaining audio, cleared buffer")
                         audio_buffer.clear()
                     logger.info("StreamClient: Sending END marker")
-                    await websocket.send(b"END\n")
+                    await websocket.send(self.config.stream.end_marker.encode())
                     end_sent = True
 
                 if not end_sent:
@@ -71,7 +72,7 @@ class StreamClient:
                         data = self.audio_queue.get_nowait()
                         logger.info(f"StreamClient: Got {len(data)} bytes from queue")
                         audio_buffer.extend(data)
-                        if len(audio_buffer) >= self.MIN_BUFFER_SIZE:
+                        if len(audio_buffer) >= self.min_buffer_size:
                             await websocket.send(bytes(audio_buffer))
                             logger.info("StreamClient: Sent audio chunk")
                             audio_buffer.clear()
@@ -79,7 +80,9 @@ class StreamClient:
                         await asyncio.sleep(0.01)
 
                 try:
-                    message = await asyncio.wait_for(websocket.recv(), timeout=0.1)
+                    message = await asyncio.wait_for(
+                        websocket.recv(), timeout=self.config.stream.timeout
+                    )
                     msg = json.loads(message)
                     logger.info(f"StreamClient: Received message: {msg}")
                     yield msg

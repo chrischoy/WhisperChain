@@ -1,0 +1,15 @@
+{
+    "server_url": "ws://localhost:8000/stream",
+    "hotkey": "<ctrl>+<alt>+r",
+    "audio": {
+        "sample_rate": 16000,
+        "channels": 1,
+        "chunk_size": 4096,
+        "format": "int16"
+    },
+    "stream": {
+        "min_buffer_size": 32000,
+        "timeout": 0.1,
+        "end_marker": "END\n"
+    }
+}
