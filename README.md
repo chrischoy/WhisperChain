@@ -1,7 +1,7 @@
 # Whisper Chain
 
 <p align="center">
-  <img src="./assets/logo.jpg" width="30%" alt="Whisper Chain Logo" />
+  <img src="https://github.com/chrischoy/WhisperChain/raw/main/assets/logo.jpg" width="30%" alt="Whisper Chain Logo" />
 </p>
 
 ## Overview
@@ -50,7 +50,7 @@ whisperchain --config config.json
 whisperchain --port 8080 --hotkey "<ctrl>+<alt>+t"
 ```
 
-2. Use the global hotkey (<ctrl>+<alt>+r by default):
+2. Use the global hotkey (`<ctrl>+<alt>+r` by default. `<ctrl>+<option>+r` on MacOS):
    - Press and hold to start recording
    - Speak your text
    - Release to stop recording

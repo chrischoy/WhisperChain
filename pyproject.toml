@@ -1,13 +1,25 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = ["setuptools>=45", "wheel", "build"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "whisperchain"
-version = "0.1.0"
-description = "Voice control using Whisper.cpp and cleanup with LangChain"
+version = "0.1.1"
+description = "Voice control using Whisper.cpp with LangChain cleanup"
 readme = "README.md"
 requires-python = ">=3.8"
+keywords = ["whisper", "langchain", "voice-control", "speech-to-text"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
 license = { text = "MIT" }
 authors = [
     { name="Chris Choy", email="chrischoy@ai.stanford.edu" }
@@ -17,15 +29,14 @@ dependencies = [
     "pydantic>=2.0.0",
     "pynput>=1.7.7",
     "pyperclip",
-    "torch>=2.0.0",
     "openai>=1.0.0",
     "pywhispercpp>=1.3.0",
-    "setuptools>=45",
     "fastapi>=0.100.0",
     "uvicorn>=0.22.0",
     "pyaudio>=0.2.11",
     "langchain>=0.1.0",
     "langchain-openai>=0.1.0",
+    "websockets>=11.0.0",
 ]
 
 [project.optional-dependencies]
@@ -36,12 +47,20 @@ test = [
 ]
 dev = [
     "pre-commit>=3.0.0",
+    "black>=22.0.0",
+    "isort>=5.0.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
 ]
 
 [project.scripts]
 whisperchain = "whisperchain.cli.run:main"
 whisperchain-client = "whisperchain.cli.run_client:main"
 whisperchain-server = "whisperchain.cli.run_server:main"
+
+[project.urls]
+Homepage = "https://github.com/chrischoy/whisperchain"
+"Bug Tracker" = "https://github.com/chrischoy/whisperchain/issues"
 
 [tool.black]
 line-length = 99
@@ -56,6 +75,8 @@ package-dir = {"" = "src"}  # Tells setuptools that packages are under src
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["whisperchain*"]
+exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
