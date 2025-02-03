@@ -77,7 +77,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # Build a final message
             final_message = {
                 "type": "transcription",
-                "text": f"Final transcription: Received {len(received_data)} bytes",
+                "processed_bytes": len(received_data),
                 "is_final": True,
                 "transcription": list_of_segments_to_text_with_timestamps(segments),
                 "cleaned_transcription": cleaned_transcription,
@@ -95,7 +95,7 @@ async def websocket_endpoint(websocket: WebSocket):
             received_data += data
             echo_message = {
                 "type": "transcription",
-                "text": f"Received chunk: {len(data)} bytes",
+                "processed_bytes": len(received_data),
                 "is_final": False,
             }
             logger.info("Server: Echoing message: %s", echo_message)

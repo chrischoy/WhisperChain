@@ -10,6 +10,13 @@ from src.utils.logger import get_logger
 logger = get_logger()
 
 
+async def stop_after(client, seconds):
+    await asyncio.sleep(seconds)
+    # Clear the recording flag to trigger the stop logic in stream_microphone()
+    client.is_recording.clear()
+    logger.info(f"Test: Cleared recording flag after {seconds} seconds.")
+
+
 @pytest.mark.skipif(
     not os.getenv("TEST_WITH_MIC"),
     reason="Requires microphone input. Run with TEST_WITH_MIC=1 to enable.",
@@ -18,15 +25,7 @@ logger = get_logger()
 async def test_stream_client_with_real_mic():
     """
     Test StreamClient with actual microphone input.
-
-    This test requires human interaction:
-    1. Speak into the microphone when test starts
-    2. Test will record for 5 seconds
-    3. Server will play back the received audio
-    4. Verify that the playback matches what was spoken
-
-    Run with:
-        TEST_WITH_MIC=1 pytest tests/test_stream_client.py -v -k test_stream_client_with_real_mic
+    This test will record for 5 seconds and then force-stop the streamer.
     """
     print("\n=== Real Microphone Test ===")
     print("Please speak into your microphone when recording starts")
@@ -42,7 +41,9 @@ async def test_stream_client_with_real_mic():
     messages = []
     total_bytes_sent = 0
 
-    async with StreamClient(record_duration=5) as client:
+    async with StreamClient() as client:
+        # Schedule clearing the recording flag after 5 seconds.
+        asyncio.create_task(stop_after(client, 5))
         async for message in client.stream_microphone():
             messages.append(message)
             # Extract byte count from message text if available

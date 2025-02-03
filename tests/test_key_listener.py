@@ -1,13 +1,13 @@
 import pytest
 from pynput import keyboard
 
-from src.client.key_listener import HotKeyListener
+from src.client.key_listener import HotKeyRecordingListener
 
 
 @pytest.fixture
 def listener():
     # Create an instance of HotKeyRecordingListener with the default hotkey.
-    listener = HotKeyListener("<ctrl>+<alt>+r")
+    listener = HotKeyRecordingListener("<ctrl>+<alt>+r")
     return listener
 
 
