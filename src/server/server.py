@@ -8,11 +8,17 @@ import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pywhispercpp.model import Model, Segment
 
+from src.server.chain import TranscriptionCleaner
 from src.utils.logger import get_logger
+from src.utils.segment import (
+    list_of_segments_to_text,
+    list_of_segments_to_text_with_timestamps,
+)
 
 logger = get_logger(__name__)
 
 whisper_model = None
+transcription_cleaner = None
 DEBUG = bool(os.getenv("DEBUG"))
 
 app = FastAPI()
@@ -20,11 +26,13 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_event():
-    global whisper_model
+    global whisper_model, transcription_cleaner
     logger.info("Initializing Whisper model...")
     whisper_model = Model()
+    logger.info("Initializing transcription cleaner...")
+    transcription_cleaner = TranscriptionCleaner()
     if DEBUG:
-        logger.info("Running in DEBUG mode - audio playback enabled")
+        logger.info("Running in DEBUG mode - audio playback enabled. Printing all chain logs.")
 
 
 async def play_audio(audio_data: bytes):
@@ -45,14 +53,7 @@ async def transcribe_audio(audio_data: bytes) -> List[Segment]:
     audio_array = audio_array.astype(np.float32) / np.iinfo(np.int16).max
     # Transcribe the audio
     result: List[Segment] = whisper_model.transcribe(audio_array)
-    return [
-        {
-            "text": segment.text,
-            "start": segment.t0,
-            "end": segment.t1,
-        }
-        for segment in result
-    ]
+    return result
 
 
 @app.websocket("/stream")
@@ -70,13 +71,16 @@ async def websocket_endpoint(websocket: WebSocket):
             data_without_end = data[:-4]
             received_data += data_without_end
             # Transcribe the received audio
-            transcription = await transcribe_audio(received_data)
+            segments = await transcribe_audio(received_data)
+            # Clean the transcription
+            cleaned_transcription = transcription_cleaner.clean(list_of_segments_to_text(segments))
             # Build a final message
             final_message = {
                 "type": "transcription",
                 "text": f"Final transcription: Received {len(received_data)} bytes",
                 "is_final": True,
-                "transcription": transcription,
+                "transcription": list_of_segments_to_text_with_timestamps(segments),
+                "cleaned_transcription": cleaned_transcription,
             }
             logger.info("Server: Sending final message: %s", final_message)
             await websocket.send_json(final_message)

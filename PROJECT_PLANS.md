@@ -26,8 +26,8 @@
 - [ ] LangChain Integration
     - [x] Test OpenAI API Key loading
     - [x] Chain configuration
-    - [ ] Text processing pipeline
-    - [ ] Response formatting
+    - [x] Text processing pipeline
+    - [x] Response formatting
     - [ ] Support other LLMs (DeepSeek, Gemini, ...)
 - [ ] Press to talk
     - [ ] Add a button to toggle voice control
