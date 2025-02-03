@@ -30,8 +30,8 @@
     - [x] Response formatting
     - [ ] Support other LLMs (DeepSeek, Gemini, ...)
 - [ ] Press to talk
-    - [ ] Add a button to toggle voice control
-        - [ ] Capture a hot key regardless of the current application
+    - [x] Key listener
+    - [x] Capture a hot key regardless of the current application
     - [ ] Show an icon when voice control is active
 - [ ] Context Management
     - [ ] System prompt configuration
