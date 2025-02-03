@@ -1,5 +1,9 @@
 # Whisper Chain
 
+<p align="center">
+  <img src="./assets/logo.jpg" width="30%" alt="Whisper Chain Logo" />
+</p>
+
 ## Overview
 
 Typing is boring, let's use voice to control your computer. This project combines:
