@@ -19,27 +19,32 @@ class StreamClient:
     def __init__(self, server_url="ws://localhost:8000/stream"):
         self.server_url = server_url
         self.audio_queue = mp.Queue()
-        self.is_recording = mp.Event()
+        self.is_audio_capturing = mp.Event()
+        self.stop_event = mp.Event()
         self.audio_process = None
 
-    def _start_recording(self):
-        self.is_recording.set()
-        capture = AudioCapture(self.audio_queue, self.is_recording)
+    def _start_audio_capture(self):
+        self.stop_event.clear()
+        self.is_audio_capturing.set()
+        capture = AudioCapture(self.audio_queue, self.is_audio_capturing)
         self.audio_process = mp.Process(target=capture.start)
         self.audio_process.start()
         logger.info("StreamClient: Started recording process")
 
-    def _stop_recording(self):
-        if self.is_recording.is_set():
-            logger.info("StreamClient: Stopping recording")
-            self.is_recording.clear()
+    def _stop_audio_capture(self):
+        if self.is_audio_capturing.is_set():
+            logger.info("StreamClient: Stopping audio capture")
+            self.is_audio_capturing.clear()
         if self.audio_process:
             self.audio_process.join(timeout=2.0)
             if self.audio_process.is_alive():
                 logger.warning("StreamClient: Terminating lingering audio process")
                 self.audio_process.terminate()
             self.audio_process = None
-            logger.info("StreamClient: Recording stopped")
+            logger.info("StreamClient: Audio capture stopped")
+
+    def stop(self):
+        self.stop_event.set()
 
     @handle_exceptions
     async def stream_microphone(self):
@@ -48,11 +53,11 @@ class StreamClient:
         logger.info("StreamClient: Connecting to server")
         async with websockets.connect(self.server_url) as websocket:
             logger.info("StreamClient: Connected to server")
-            self._start_recording()
+            self._start_audio_capture()
             while True:
-                # Check if the is_recording event has been cleared (e.g., hotkey released)
-                if not self.is_recording.is_set() and not end_sent:
-                    self._stop_recording()
+                # Check if the is_audio_capturing event has been cleared (e.g., hotkey released)
+                if self.stop_event.is_set() and not end_sent:
+                    self._stop_audio_capture()
                     if audio_buffer:
                         await websocket.send(bytes(audio_buffer))
                         logger.info("StreamClient: Sent remaining audio, cleared buffer")
@@ -89,4 +94,4 @@ class StreamClient:
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        self._stop_recording()
+        self._stop_audio_capture()

@@ -64,6 +64,7 @@ async def websocket_endpoint(websocket: WebSocket):
         try:
             data = await websocket.receive_bytes()
         except WebSocketDisconnect:
+            logger.info("Server: WebSocket disconnected")
             break
 
         if data.endswith(b"END\n"):
@@ -95,7 +96,7 @@ async def websocket_endpoint(websocket: WebSocket):
             received_data += data
             echo_message = {
                 "type": "transcription",
-                "processed_bytes": len(received_data),
+                "processed_bytes": len(data),
                 "is_final": False,
             }
             logger.info("Server: Echoing message: %s", echo_message)

@@ -7,14 +7,14 @@ import pytest
 from src.client.stream_client import StreamClient
 from src.utils.logger import get_logger
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 async def stop_after(client, seconds):
     await asyncio.sleep(seconds)
     # Clear the recording flag to trigger the stop logic in stream_microphone()
-    client.is_recording.clear()
-    logger.info(f"Test: Cleared recording flag after {seconds} seconds.")
+    client.stop()
+    logger.info(f"Test: Cleared audio capturing flag after {seconds} seconds.")
 
 
 @pytest.mark.skipif(
@@ -49,12 +49,12 @@ async def test_stream_client_with_real_mic():
             # Extract byte count from message text if available
             if not message.get("is_final"):
                 try:
-                    byte_count = int(message["text"].split(": ")[1].split(" ")[0])
+                    byte_count = int(message["processed_bytes"])
                     total_bytes_sent += byte_count
                 except (IndexError, ValueError):
                     pass
             if message.get("is_final"):
-                final_byte_count = int(message["text"].split(": Received ")[1].split(" ")[0])
+                final_byte_count = int(message["processed_bytes"])
                 break
 
     print("\nTest Results:")

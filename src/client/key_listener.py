@@ -1,11 +1,11 @@
 import asyncio
 import multiprocessing as mp
 from threading import Thread
-from time import sleep
 
 from pynput import keyboard
 
 from src.client.stream_client import StreamClient
+from src.utils.decorators import handle_exceptions
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -49,8 +49,10 @@ class HotKeyRecordingListener(HotKeyListener):
         super().__init__(combination_str)
         self.recording = False
         self.stop_event = mp.Event()
+        self.stop_event.clear()
         self.streaming_thread = None
 
+    @handle_exceptions
     async def _streaming_loop(self):
         messages = []
         total_bytes_sent = 0
@@ -58,19 +60,20 @@ class HotKeyRecordingListener(HotKeyListener):
         async with StreamClient() as client:
             async for message in client.stream_microphone():
                 if self.stop_event.is_set():
+                    logger.info("Stopping audio capture")
                     # this will trigger the stop logic in stream_microphone() by setting END marker
-                    client.is_recording.clear()
+                    client.stop()
 
                 messages.append(message)
                 # Extract byte count from message text if available.
                 if not message.get("is_final"):
                     try:
-                        byte_count = int(message["text"].split(": ")[1].split(" ")[0])
+                        byte_count = int(message["processed_bytes"])
                         total_bytes_sent += byte_count
                     except (IndexError, ValueError):
                         pass
                 if message.get("is_final"):
-                    final_byte_count = int(message["text"].split(": Received ")[1].split(" ")[0])
+                    final_byte_count = int(message["processed_bytes"])
                     break
         # Optionally, you can log or store the messages/byte counts.
         logger.info(f"Async streaming loop finished. Total bytes sent: {total_bytes_sent}")

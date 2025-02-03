@@ -1,5 +1,4 @@
 import pytest
-from pynput import keyboard
 
 from src.client.key_listener import HotKeyRecordingListener
 
