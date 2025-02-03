@@ -1,6 +1,6 @@
 import asyncio
-import json
-from typing import Any, Dict, List
+import os
+from typing import List
 
 import numpy as np
 import pyaudio
@@ -13,6 +13,7 @@ from src.utils.logger import get_logger
 logger = get_logger(__name__)
 
 whisper_model = None
+DEBUG = bool(os.getenv("DEBUG"))
 
 app = FastAPI()
 
@@ -22,6 +23,8 @@ async def startup_event():
     global whisper_model
     logger.info("Initializing Whisper model...")
     whisper_model = Model()
+    if DEBUG:
+        logger.info("Running in DEBUG mode - audio playback enabled")
 
 
 async def play_audio(audio_data: bytes):
@@ -77,9 +80,10 @@ async def websocket_endpoint(websocket: WebSocket):
             }
             logger.info("Server: Sending final message: %s", final_message)
             await websocket.send_json(final_message)
-            # Play back the received audio
-            logger.info("Server: Playing back received audio...")
-            await play_audio(received_data)
+            # Play back the received audio only in debug mode
+            if DEBUG:
+                logger.info("Server: Playing back received audio (DEBUG mode)...")
+                await play_audio(received_data)
             await asyncio.sleep(0.1)
             break
         else:

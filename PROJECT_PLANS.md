@@ -19,14 +19,13 @@
     - [x] Basic transcription test
 - [x] Basic git commit hook to check if the code is formatted
     - [x] Format the code
-- [ ] Voice Processing Server
+- [x] Voice Processing Server
     - [x] FastAPI server setup
     - [x] Audio upload endpoint
     - [x] Streaming audio support
-    - [ ] WebSocket for real-time transcription
 - [ ] LangChain Integration
-    - [ ] Test OpenAI API Key loading
-    - [ ] Chain configuration
+    - [x] Test OpenAI API Key loading
+    - [x] Chain configuration
     - [ ] Text processing pipeline
     - [ ] Response formatting
     - [ ] Support other LLMs (DeepSeek, Gemini, ...)

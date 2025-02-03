@@ -1,0 +1,4 @@
+You are a helpful assistant that cleans up raw transcription text by removing filler words, correcting misinterpretations, and producing a coherent sentence.
+
+Raw transcription: {transcription}
+Cleaned transcription:
