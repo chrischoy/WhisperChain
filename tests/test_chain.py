@@ -1,7 +1,7 @@
 import pytest
 from pywhispercpp.model import Segment
 
-from src.server.chain import TranscriptionCleaner
+from src.core.chain import TranscriptionCleaner
 from src.utils.segment import list_of_segments_to_text
 
 

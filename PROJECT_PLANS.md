@@ -23,7 +23,7 @@
     - [x] FastAPI server setup
     - [x] Audio upload endpoint
     - [x] Streaming audio support
-- [ ] LangChain Integration
+- [x] LangChain Integration
     - [x] Test OpenAI API Key loading
     - [x] Chain configuration
     - [x] Text processing pipeline
@@ -32,6 +32,7 @@
 - [ ] Press to talk
     - [x] Key listener
     - [x] Capture a hot key regardless of the current application
+    - [x] Put the final result in the system clipboard
     - [ ] Show an icon when voice control is active
 - [ ] Context Management
     - [ ] System prompt configuration

@@ -2,6 +2,7 @@ import asyncio
 import multiprocessing as mp
 from threading import Thread
 
+import pyperclip
 from pynput import keyboard
 
 from src.client.stream_client import StreamClient
@@ -73,7 +74,9 @@ class HotKeyRecordingListener(HotKeyListener):
                     except (IndexError, ValueError):
                         pass
                 if message.get("is_final"):
-                    final_byte_count = int(message["processed_bytes"])
+                    final_cleaned = message["cleaned_transcription"]
+                    pyperclip.copy(final_cleaned)
+                    logger.info(f"Copied to clipboard: {final_cleaned}")
                     break
         # Optionally, you can log or store the messages/byte counts.
         logger.info(f"Async streaming loop finished. Total bytes sent: {total_bytes_sent}")
