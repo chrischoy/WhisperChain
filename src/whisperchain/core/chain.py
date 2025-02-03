@@ -1,11 +1,12 @@
 import getpass
 import os
+from pathlib import Path
 
 from langchain.prompts.chat import ChatPromptTemplate
 from langchain.schema import AIMessage
 from langchain_openai import ChatOpenAI
 
-from src.utils.logger import get_logger
+from whisperchain.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -13,7 +14,7 @@ if not os.environ.get("OPENAI_API_KEY"):
     os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter API key for OpenAI: ")
 
 
-def load_prompt(prompt_name: str) -> str:
+def load_prompt(prompt_path: str | Path) -> str:
     """
     Load a prompt template from the PROJECT_ROOT/prompts folder.
 
@@ -23,9 +24,15 @@ def load_prompt(prompt_name: str) -> str:
     Returns:
         str: The content of the prompt template.
     """
-    prompt_path = os.path.join("prompts", prompt_name)
-    assert os.path.exists(prompt_path), f"Prompt file {prompt_path} does not exist"
-    with open(prompt_path, "r", encoding="utf-8") as file:
+    if isinstance(prompt_path, str):
+        prompt_path = Path(prompt_path)
+
+    # if the prompt path is relative, convert it to an absolute path
+    if not prompt_path.is_absolute():
+        prompt_path = Path(__file__).parent.parent / prompt_path
+
+    assert prompt_path.exists(), f"prompt path: {prompt_path} does not exist"
+    with open(str(prompt_path), "r", encoding="utf-8") as file:
         return file.read()
 
 
@@ -41,11 +48,11 @@ class TranscriptionCleaner:
     def __init__(
         self,
         model_name: str = "gpt-3.5-turbo",
-        prompt_file: str = "transcription_cleanup.txt",
+        prompt_path: str = "prompts/transcription_cleanup.txt",  # relative to the whisperchain package
         verbose: bool = False,
     ):
         # Load and convert the prompt text into a runnable ChatPromptTemplate.
-        prompt_text = load_prompt(prompt_file)
+        prompt_text = load_prompt(prompt_path)
         self.prompt_template = ChatPromptTemplate.from_template(prompt_text)
         self.llm = ChatOpenAI(model_name=model_name, temperature=0, verbose=verbose)
         self.runnable_chain = self.prompt_template | self.llm

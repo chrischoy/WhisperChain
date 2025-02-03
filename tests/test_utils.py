@@ -1,8 +1,6 @@
-import logging
-
 import pytest
 
-from src.utils.logger import get_logger
+from whisperchain.utils.logger import get_logger
 
 
 def test_logger(capsys):

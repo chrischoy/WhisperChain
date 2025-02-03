@@ -5,10 +5,10 @@ import time
 
 import websockets
 
-from src.core.audio import AudioCapture
-from src.core.config import ClientConfig
-from src.utils.decorators import handle_exceptions
-from src.utils.logger import get_logger
+from whisperchain.core.audio import AudioCapture
+from whisperchain.core.config import ClientConfig
+from whisperchain.utils.decorators import handle_exceptions
+from whisperchain.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

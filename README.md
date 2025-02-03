@@ -1,4 +1,4 @@
-# Whisper LangChain
+# Whisper Chain
 
 ## Overview
 
@@ -27,7 +27,9 @@ brew install ffmpeg portaudio
 2. Install the project:
 
 ```bash
-pip install -e .
+pip install build
+python -m build
+pip install .
 ```
 
 ## Usage
@@ -35,13 +37,13 @@ pip install -e .
 1. Start the application:
 ```bash
 # Run with default settings
-whisper-voice
+whisperchain
 
 # Run with custom configuration
-whisper-voice --config config.json
+whisperchain --config config.json
 
 # Override specific settings
-whisper-voice --port 8080 --hotkey "<ctrl>+<alt>+t"
+whisperchain --port 8080 --hotkey "<ctrl>+<alt>+t"
 ```
 
 2. Use the global hotkey (<ctrl>+<alt>+r by default):
@@ -73,6 +75,14 @@ TEST_WITH_MIC=1 pytest tests/test_stream_client.py -v -k test_stream_client_with
 
 # Run all tests including microphone test
 TEST_WITH_MIC=1 pytest tests/
+```
+
+### Building the project
+
+```bash
+pip install build
+python -m build
+pip install .
 ```
 
 ## License

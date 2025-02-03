@@ -5,8 +5,8 @@ import time
 import pyaudio
 import pytest
 
-from core.audio import AudioCapture
-from src.core.config import AudioConfig
+from whisperchain.core.audio import AudioCapture
+from whisperchain.core.config import AudioConfig
 
 
 @pytest.mark.skipif(not os.getenv("TEST_WITH_MIC"), reason="Requires microphone input")

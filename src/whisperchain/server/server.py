@@ -8,9 +8,9 @@ import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pywhispercpp.model import Model, Segment
 
-from src.core.chain import TranscriptionCleaner
-from src.utils.logger import get_logger
-from src.utils.segment import (
+from whisperchain.core.chain import TranscriptionCleaner
+from whisperchain.utils.logger import get_logger
+from whisperchain.utils.segment import (
     list_of_segments_to_text,
     list_of_segments_to_text_with_timestamps,
 )

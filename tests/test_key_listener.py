@@ -1,6 +1,6 @@
 import pytest
 
-from src.client.key_listener import HotKeyRecordingListener
+from whisperchain.client.key_listener import HotKeyRecordingListener
 
 
 @pytest.fixture

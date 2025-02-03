@@ -4,9 +4,9 @@ from typing import Optional
 import click
 import uvicorn
 
-from src.client.key_listener import HotKeyRecordingListener
-from src.core.config import ClientConfig
-from src.server.server import app
+from whisperchain.client.key_listener import HotKeyRecordingListener
+from whisperchain.core.config import ClientConfig
+from whisperchain.server.server import app
 
 
 def run_server(host: str = "0.0.0.0", port: int = 8000):

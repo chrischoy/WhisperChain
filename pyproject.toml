@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "whisper-langchain"
+name = "whisperchain"
 version = "0.1.0"
 description = "Voice control using Whisper.cpp and cleanup with LangChain"
 readme = "README.md"
@@ -39,7 +39,9 @@ dev = [
 ]
 
 [project.scripts]
-whisper-voice = "src.cli.run:main"
+whisperchain = "whisperchain.cli.run:main"
+whisperchain-client = "whisperchain.cli.run_client:main"
+whisperchain-server = "whisperchain.cli.run_server:main"
 
 [tool.black]
 line-length = 99
@@ -50,11 +52,10 @@ profile = "black"
 multi_line_output = 3
 
 [tool.setuptools]
-package-dir = {"" = "."}  # Tells setuptools that packages are under .
+package-dir = {"" = "src"}  # Tells setuptools that packages are under src
 
 [tool.setuptools.packages.find]
-where = ["."]
-exclude = ["tests"]
+where = ["src"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

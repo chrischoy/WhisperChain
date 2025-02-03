@@ -29,16 +29,17 @@
     - [x] Text processing pipeline
     - [x] Response formatting
     - [ ] Support other LLMs (DeepSeek, Gemini, ...)
+    - [ ] Local LLM support
 - [ ] Press to talk
     - [x] Key listener
     - [x] Capture a hot key regardless of the current application
     - [x] Put the final result in the system clipboard
     - [ ] Show an icon when voice control is active
-- [ ] Command line interface
-    - [ ] Add a command line interface using `click`
+- [x] Command line interface
+    - [x] Add a command line interface using `click`
 - [ ] Context Management
     - [ ] System prompt configuration
     - [ ] Chat history persistence
 - [ ] Documentation
-    - [ ] API Documentation (OpenAPI/Swagger)
+    - [ ] API Documentation
     - [ ] Usage examples and guides

@@ -5,10 +5,10 @@ from threading import Thread
 import pyperclip
 from pynput import keyboard
 
-from src.client.stream_client import StreamClient
-from src.core.config import ClientConfig
-from src.utils.decorators import handle_exceptions
-from src.utils.logger import get_logger
+from whisperchain.client.stream_client import StreamClient
+from whisperchain.core.config import ClientConfig
+from whisperchain.utils.decorators import handle_exceptions
+from whisperchain.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -52,7 +52,6 @@ class HotKeyRecordingListener(HotKeyListener):
         self.config = config or ClientConfig(hotkey=hotkey)
         self.recording = False
         self.stop_event = mp.Event()
-        self.stop_event.clear()
         self.streaming_thread = None
 
     @handle_exceptions
@@ -85,6 +84,7 @@ class HotKeyRecordingListener(HotKeyListener):
     def on_activate(self):
         super().on_activate()
         if not self.recording:
+            self.stop_event.clear()
             logger.info("Starting async streaming loop")
             # Run the async _streaming_loop() in a background thread.
             self.streaming_thread = Thread(

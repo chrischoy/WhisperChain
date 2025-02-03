@@ -4,8 +4,8 @@ from time import sleep
 
 import pytest
 
-from src.client.stream_client import StreamClient
-from src.utils.logger import get_logger
+from whisperchain.client.stream_client import StreamClient
+from whisperchain.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

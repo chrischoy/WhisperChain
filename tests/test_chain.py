@@ -1,8 +1,8 @@
 import pytest
 from pywhispercpp.model import Segment
 
-from src.core.chain import TranscriptionCleaner
-from src.utils.segment import list_of_segments_to_text
+from whisperchain.core.chain import TranscriptionCleaner
+from whisperchain.utils.segment import list_of_segments_to_text
 
 
 @pytest.fixture

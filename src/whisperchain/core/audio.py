@@ -2,8 +2,8 @@ import multiprocessing as mp
 
 import pyaudio
 
-from src.core.config import AudioConfig
-from src.utils.logger import get_logger
+from whisperchain.core.config import AudioConfig
+from whisperchain.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
