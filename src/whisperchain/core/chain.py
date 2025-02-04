@@ -10,9 +10,6 @@ from whisperchain.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-if not os.environ.get("OPENAI_API_KEY"):
-    os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter API key for OpenAI: ")
-
 
 def load_prompt(prompt_path: str | Path) -> str:
     """

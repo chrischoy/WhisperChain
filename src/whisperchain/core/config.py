@@ -33,3 +33,17 @@ class ClientConfig(BaseModel):
     stream: StreamConfig = Field(
         default_factory=StreamConfig, description="Stream client settings"
     )
+
+
+class ServerConfig(BaseModel):
+    host: str = "0.0.0.0"
+    port: int = 8000
+    model_name: str = "base.en"
+    debug: bool = False
+
+    def validate_model_name(cls, v):
+        from pywhispercpp.constants import AVAILABLE_MODELS
+
+        if v not in AVAILABLE_MODELS:
+            raise ValueError(f"Model {v} not found in {AVAILABLE_MODELS}")
+        return v

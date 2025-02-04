@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "whisperchain"
-version = "0.1.1"
+version = "0.1.2"
 description = "Voice control using Whisper.cpp with LangChain cleanup"
 readme = "README.md"
 requires-python = ">=3.8"

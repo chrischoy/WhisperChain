@@ -1,6 +1,8 @@
 import asyncio
 import json
 import multiprocessing as mp
+import queue
+import threading
 import time
 
 import websockets
@@ -19,29 +21,28 @@ class StreamClient:
         self.config = config or ClientConfig()
         self.server_url = self.config.server_url
         self.min_buffer_size = self.config.stream.min_buffer_size
-        self.audio_queue = mp.Queue()
-        self.is_audio_capturing = mp.Event()
-        self.stop_event = mp.Event()
-        self.audio_process = None
+        self.audio_queue = queue.Queue()
+        self.is_audio_capturing = threading.Event()
+        self.stop_event = threading.Event()
+        self.audio_thread = None
 
     def _start_audio_capture(self):
         self.stop_event.clear()
         self.is_audio_capturing.set()
         capture = AudioCapture(self.audio_queue, self.is_audio_capturing, config=self.config.audio)
-        self.audio_process = mp.Process(target=capture.start)
-        self.audio_process.start()
-        logger.info("StreamClient: Started recording process")
+        self.audio_thread = threading.Thread(target=capture.start)
+        self.audio_thread.start()
+        logger.info("StreamClient: Started recording thread")
 
     def _stop_audio_capture(self):
         if self.is_audio_capturing.is_set():
             logger.info("StreamClient: Stopping audio capture")
             self.is_audio_capturing.clear()
-        if self.audio_process:
-            self.audio_process.join(timeout=2.0)
-            if self.audio_process.is_alive():
-                logger.warning("StreamClient: Terminating lingering audio process")
-                self.audio_process.terminate()
-            self.audio_process = None
+        if self.audio_thread:
+            self.audio_thread.join(timeout=2.0)
+            if self.audio_thread.is_alive():
+                logger.warning("StreamClient: Audio thread still running")
+            self.audio_thread = None
             logger.info("StreamClient: Audio capture stopped")
 
     def stop(self):

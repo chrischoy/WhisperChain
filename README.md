@@ -6,7 +6,7 @@
 
 ## Overview
 
-Typing is boring, let's use voice to control your computer. This project combines:
+Typing is boring, let's use voice to speed up your workflow. This project combines:
 - Real-time speech recognition using Whisper.cpp
 - Transcription cleanup using LangChain
 - Global hotkey support for voice control
@@ -29,11 +29,30 @@ brew install ffmpeg portaudio
 ```
 
 2. Install the project:
-
 ```bash
-pip install build
-python -m build
-pip install .
+pip install whisperchain
+```
+
+## Configuration
+
+WhisperChain will look for configuration in the following locations:
+1. Environment variables
+2. .env file in the current directory
+3. ~/.whisperchain/.env file
+
+On first run, if no configuration is found, you will be prompted to enter your OpenAI API key. The key will be saved in `~/.whisperchain/.env` for future use.
+
+You can also manually set your OpenAI API key in any of these ways:
+```bash
+# Option 1: Environment variable
+export OPENAI_API_KEY=your-api-key-here
+
+# Option 2: Create .env file in current directory
+echo "OPENAI_API_KEY=your-api-key-here" > .env
+
+# Option 3: Create global config
+mkdir -p ~/.whisperchain
+echo "OPENAI_API_KEY=your-api-key-here" > ~/.whisperchain/.env
 ```
 
 ## Usage
@@ -47,16 +66,15 @@ whisperchain
 whisperchain --config config.json
 
 # Override specific settings
-whisperchain --port 8080 --hotkey "<ctrl>+<alt>+t"
+whisperchain --port 8080 --hotkey "<ctrl>+<alt>+t" --model "large" --debug
 ```
 
-2. Use the global hotkey (`<ctrl>+<alt>+r` by default. `<ctrl>+<option>+r` on MacOS):
+3. Use the global hotkey (`<ctrl>+<alt>+r` by default. `<ctrl>+<option>+r` on MacOS):
    - Press and hold to start recording
    - Speak your text
    - Release to stop recording
    - The cleaned transcription will be copied to your clipboard automatically
-
-The application will start both the server and client processes. Press Ctrl+C to stop both processes.
+   - Paste (Ctrl+V) to paste the transcription
 
 ## Development
 
@@ -84,9 +102,15 @@ TEST_WITH_MIC=1 pytest tests/
 ### Building the project
 
 ```bash
-pip install build
 python -m build
 pip install .
+```
+
+### Publishing to PyPI
+
+```bash
+python -m build
+twine upload --repository pypi dist/*
 ```
 
 ## License
