@@ -37,6 +37,7 @@
     - [ ] Show an icon when voice control is active
 - [x] Command line interface
     - [x] Add a command line interface using `click`
+- [ ] Web UI
 - [ ] Context Management
     - [ ] System prompt configuration
     - [ ] Chat history persistence

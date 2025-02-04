@@ -6,6 +6,8 @@ import numpy as np
 import pyaudio
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pywhispercpp.constants import AVAILABLE_MODELS
 from pywhispercpp.model import Model, Segment
 
@@ -27,10 +29,17 @@ class WhisperServer:
         self.transcription_cleaner = None
         self.app = FastAPI()
         self.setup_routes()
+        # Mount static files
+        self.static_dir = os.path.join(os.path.dirname(__file__), "static")
+        self.app.mount("/static", StaticFiles(directory=self.static_dir), name="static")
 
     def setup_routes(self):
         self.app.add_event_handler("startup", self.startup_event)
         self.app.add_websocket_route("/stream", self.websocket_endpoint)
+
+        @self.app.get("/")
+        async def get_index():
+            return FileResponse(os.path.join(os.path.dirname(__file__), "static", "index.html"))
 
     async def startup_event(self):
         logger.info(f"Initializing Whisper model {self.config.model_name}...")
