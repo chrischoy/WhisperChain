@@ -78,6 +78,18 @@ whisperchain --port 8080 --hotkey "<ctrl>+<alt>+t" --model "large" --debug
 
 ## Development
 
+### Streamlit UI
+
+```bash
+streamlit run src/whisperchain/ui/streamlit_app.py
+```
+
+If there is an error in the Streamlit UI, you can run the following command to kill all running Streamlit processes:
+
+```bash
+lsof -ti :8501 | xargs kill -9
+```
+
 ### Running Tests
 
 Install test dependencies:
@@ -122,3 +134,36 @@ twine upload --repository pypi dist/*
 - [Whisper.cpp](https://github.com/ggerganov/whisper.cpp)
 - [pywhispercpp](https://github.com/absadiki/pywhispercpp.git)
 - [LangChain](https://github.com/langchain-ai/langchain)
+
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph "Client Options"
+        K[Key Listener]
+        A[Audio Stream]
+        C[Clipboard]
+    end
+
+    subgraph "Streamlit Web UI :8501"
+        WebP[Prompt]
+        WebH[History]
+    end
+
+    subgraph "FastAPI Server :8000"
+        WS[WebSocket /stream]
+        W[Whisper Model]
+        LC[LangChain Processor]
+        H[History]
+    end
+
+    K -->|"Hot Key"| A
+    A -->|"Audio Stream"| WS
+    WS --> W
+    W --> LC
+    WebP --> LC
+    LC --> C
+    LC --> H
+    H --> WebH
+```

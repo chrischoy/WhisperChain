@@ -37,7 +37,12 @@
     - [ ] Show an icon when voice control is active
 - [x] Command line interface
     - [x] Add a command line interface using `click`
-- [ ] Web UI
+- [x] Web UI
+    - [x] Streamlit UI
+    - [x] Visualize (input audio), transcription, and output text
+    - [x] Visualize transcription history
+    - [ ] Prompt config
+    - [ ] LangChain config
 - [ ] Context Management
     - [ ] System prompt configuration
     - [ ] Chat history persistence

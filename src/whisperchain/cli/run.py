@@ -1,81 +1,87 @@
 import multiprocessing as mp
+import sys
+from pathlib import Path
 from typing import Optional
 
 import click
+import streamlit.web.cli as stcli
 import uvicorn
 
 from whisperchain.client.key_listener import HotKeyRecordingListener
-from whisperchain.core.config import ClientConfig, ServerConfig
+from whisperchain.core.config import ClientConfig, ServerConfig, config
 from whisperchain.server.server import WhisperServer
-from whisperchain.utils.secrets import load_secrets
 
 
-def run_server(config: ServerConfig):
-    """Run the FastAPI server."""
-    server = WhisperServer(config)
-    uvicorn.run(server.app, host=config.host, port=config.port)
+def run_server(server_config: ServerConfig):
+    """Run the WhisperServer with given config"""
+    server = WhisperServer(config=server_config)
+    uvicorn.run(server.app, host=server_config.host, port=server_config.port)
 
 
-def run_client(config: Optional[ClientConfig] = None):
-    """Run the key listener client."""
-    listener = HotKeyRecordingListener(config=config)
+def run_ui():
+    """Run the Streamlit UI"""
+    # Ensure config is up to date
+    config.generate_streamlit_config()
+
+    # Get the UI script path
+    ui_path = Path(__file__).parent.parent / "ui" / "streamlit_app.py"
+
+    # Just run the script, config.toml will be used automatically
+    sys.argv = ["streamlit", "run", str(ui_path)]
+    stcli.main()
+
+
+def run_client(client_config: ClientConfig):
+    """Run the recording client"""
+    listener = HotKeyRecordingListener(config=client_config)
     listener.start()
 
 
 @click.command()
-@click.option("--host", default="0.0.0.0", help="Server host")
-@click.option("--port", default=8000, help="Server port")
-@click.option("--model", default="base.en", help="Whisper model name")
+@click.option("--server-only", is_flag=True, help="Run only the server")
+@click.option("--ui-only", is_flag=True, help="Run only the UI")
+@click.option("--client-only", is_flag=True, help="Run only the client")
 @click.option("--debug", is_flag=True, help="Enable debug mode")
-@click.option("--config", type=click.Path(exists=True), help="Path to config JSON file")
-@click.option("--hotkey", help="Override hotkey combination")
-def main(
-    host: str, port: int, model: str, debug: bool, config: Optional[str], hotkey: Optional[str]
-):
-    """Start both the server and client processes."""
-    # Initialize secrets
-    load_secrets()
-
-    # Load config if provided
-    client_config = None
-    server_config = None
-
-    if config:
-        import json
-
-        with open(config) as f:
-            config_dict = json.load(f)
-            client_config = ClientConfig.model_validate(config_dict.get("client", {}))
-            server_config = ServerConfig.model_validate(config_dict.get("server", {}))
-
-    # Override with CLI options
-    server_config = server_config or ServerConfig()
-    if host:
-        server_config.host = host
-    if port:
-        server_config.port = port
-    if model:
-        server_config.model_name = model
-    server_config.debug = debug
-
-    if hotkey:
-        client_config = client_config or ClientConfig()
-        client_config.hotkey = hotkey
-
-    # Start server in a separate process
-    server_process = mp.Process(target=run_server, args=(server_config,), name="WhisperServer")
-    server_process.start()
+def main(server_only: bool, ui_only: bool, client_only: bool, debug: bool):
+    """Run WhisperChain components"""
+    server_process = None
+    ui_process = None
+    client_process = None
 
     try:
-        # Start client in the main process
-        run_client(client_config)
+        # Load configs
+        server_config = ServerConfig(debug=debug)
+        client_config = ClientConfig()
+
+        # Start components based on flags
+        if server_only:
+            run_server(server_config)
+        elif ui_only:
+            run_ui()
+        elif client_only:
+            run_client(client_config)
+        else:
+            # Start server in separate process
+            server_process = mp.Process(target=run_server, args=(server_config,))
+            server_process.start()
+
+            # Start UI in separate process
+            ui_process = mp.Process(target=run_ui)
+            ui_process.start()
+
+            # Run client in main process
+            run_client(client_config)
+
     except KeyboardInterrupt:
         print("\nShutting down...")
     finally:
-        # Cleanup
-        if server_process.is_alive():
+        # Cleanup processes
+        if server_process and server_process.is_alive():
             server_process.terminate()
             server_process.join()
+        if ui_process and ui_process.is_alive():
+            ui_process.terminate()
+            ui_process.join()
 
 
 if __name__ == "__main__":

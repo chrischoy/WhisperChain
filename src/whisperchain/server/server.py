@@ -1,5 +1,6 @@
 import asyncio
 import os
+from datetime import datetime
 from typing import List
 
 import numpy as np
@@ -28,18 +29,28 @@ class WhisperServer:
         self.whisper_model = None
         self.transcription_cleaner = None
         self.app = FastAPI()
+        self.transcription_history = []
         self.setup_routes()
-        # Mount static files
-        self.static_dir = os.path.join(os.path.dirname(__file__), "static")
-        self.app.mount("/static", StaticFiles(directory=self.static_dir), name="static")
 
     def setup_routes(self):
         self.app.add_event_handler("startup", self.startup_event)
         self.app.add_websocket_route("/stream", self.websocket_endpoint)
 
         @self.app.get("/")
-        async def get_index():
-            return FileResponse(os.path.join(os.path.dirname(__file__), "static", "index.html"))
+        async def get_root():
+            """Health check endpoint"""
+            return {"status": "ok"}
+
+        @self.app.get("/history")
+        async def get_history():
+            """Get transcription history"""
+            return self.transcription_history
+
+        @self.app.delete("/history")
+        async def clear_history():
+            """Clear transcription history"""
+            self.transcription_history.clear()
+            return {"status": "cleared"}
 
     async def startup_event(self):
         logger.info(f"Initializing Whisper model {self.config.model_name}...")
@@ -95,8 +106,10 @@ class WhisperServer:
                     "is_final": True,
                     "transcription": list_of_segments_to_text_with_timestamps(segments),
                     "cleaned_transcription": cleaned_transcription,
+                    "timestamp": datetime.now().isoformat(),
                 }
                 logger.info("Server: Sending final message: %s", final_message)
+                self.transcription_history.append(final_message)
                 await websocket.send_json(final_message)
                 # Play back the received audio only in debug mode
                 if self.config.debug:
